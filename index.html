@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mars TCG Collection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Archivo:wght@400;500;600&display=swap">
+<style>
+/* VOICE: a vendor's table at a card show, shown on a phone. Confident, quick to scan.
+   IDEA: the Mars TCG price list, turned into a live catalogue you can search.
+   PICTURE: the astronaut-on-Mars logo, large, rising out of the black.
+   COLOUR and TYPE: black ground, bone-white ink, Mars red accent; Chakra Petch titles, Archivo text.
+   LAYOUT: logo hero, a sticky search bar, then a list of rows like the A3 price list. */
+:root{color-scheme:dark;--bg:#000;--panel:#0d0b0b;--line:#2a2624;--ink:#f4f1ec;--muted:#a9a39b;--red:#e0322b;--red-hi:#ff5a4f;
+  --display:"Chakra Petch","Arial Narrow",system-ui,sans-serif;--body:"Archivo","Helvetica Neue",system-ui,sans-serif}
+:root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{scroll-padding-top:140px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);overflow-x:clip;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2{font-family:var(--display);font-weight:700;margin:0;line-height:1.05;text-wrap:balance}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px}
+
+.hero{text-align:center;padding-block:8px 18px;background:radial-gradient(70% 60% at 50% 30%,#2a0806 0%,#000 70%)}
+.hero .wrap{position:relative}
+.langs{position:absolute;top:6px;right:max(16px,env(safe-area-inset-right,0px));display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;z-index:2;background:#000}
+.langs button{border:0;background:transparent;color:var(--muted);font:700 13px var(--display);letter-spacing:1px;padding:8px 12px;min-height:36px;cursor:pointer}
+.langs button[aria-pressed=true]{background:var(--ink);color:#000}
+.hero img{width:min(560px,92%);height:auto;display:block;margin:0 auto;animation:rise .9s ease-out both}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.98)}}
+.hero h1{font-size:clamp(26px,6vw,40px);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.hero p{margin:8px auto 0;color:var(--muted);max-width:52ch}
+.stats{display:flex;justify-content:center;gap:10px 22px;flex-wrap:wrap;margin-top:14px;font-size:14px;color:var(--muted)}
+.stats b{font-family:var(--display);font-size:22px;color:var(--ink);display:block;line-height:1.1}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding-block:10px}
+.bar .wrap{display:grid;gap:10px}
+.row1{display:flex;gap:8px}
+input[type=search]{flex:1;font-size:16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-height:46px}
+input[type=search]::placeholder{color:#77716a}
+select{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 10px;min-height:46px;font-size:15px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chips button{flex:none;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:8px 14px;min-height:40px;font-weight:600;font-size:14px;cursor:pointer}
+.chips button span{opacity:.65;margin-left:4px;font-variant-numeric:tabular-nums}
+.chips button[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+
+.list{list-style:none;margin:0;padding:6px 0 0}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.tag{display:inline-block;font:700 12px var(--display);letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-right:6px;vertical-align:2px}
+.item.graded .tag{background:var(--ink);color:#000;border-color:var(--ink)}
+.item.sealed .tag{background:var(--red);color:#fff;border-color:var(--red)}
+.name{font:700 18px/1.2 var(--display);text-transform:uppercase;letter-spacing:.3px;overflow-wrap:anywhere}
+.meta{display:block;font-size:14px;color:var(--muted);margin-top:2px}
+.open{display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;margin:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:6px}
+.txt{display:block;min-width:0}
+.thumb{flex:none;width:46px;height:64px;border-radius:4px;object-fit:cover;background:#151212;border:1px solid var(--line)}
+.item.sealed .thumb{object-fit:contain;background:#0d0b0b}
+.thumb.broken{visibility:hidden}
+.price{text-align:right;white-space:nowrap}
+.price small{display:block;font:500 12px var(--body);color:var(--muted)}
+.save{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--muted)}
+.save svg{width:20px;height:20px}
+.save[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+.empty{padding:48px 0;text-align:center;color:var(--muted)}
+.empty h2{font-size:26px;color:var(--ink);margin-bottom:8px;text-transform:uppercase}
+
+.jump{display:inline-flex;align-items:center;gap:8px;margin-top:16px;border:1px solid var(--red);color:var(--ink);text-decoration:none;border-radius:999px;padding:9px 16px;font:700 14px var(--display);text-transform:uppercase;letter-spacing:.8px}
+.jump b{color:var(--red)}
+.acryl{margin-top:36px;padding-top:8px}
+.acryl-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:2px solid var(--red);padding-bottom:10px}
+.acryl-head h2{font-size:clamp(26px,6vw,34px);text-transform:uppercase;letter-spacing:2px}
+.acryl-head span{color:var(--muted);font-size:14px}
+.acryl-intro{color:var(--muted);margin:12px 0 4px;max-width:60ch}
+.case{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.case-name{font:700 19px/1.2 var(--display);text-transform:uppercase;letter-spacing:.5px}
+.case-sub{display:block;font:400 14px var(--body);color:var(--muted);text-transform:none;letter-spacing:0;margin-top:2px}
+.case-price{flex:none;font:700 28px var(--display);color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums}
+.case.out .case-name,.case.out .case-price{color:#6f6862}
+.case.out .case-price{text-decoration:line-through;font-size:22px}
+.sold{display:inline-block;background:var(--red);color:#fff;font:700 13px var(--display);letter-spacing:1.5px;text-transform:uppercase;padding:4px 9px;transform:rotate(-4deg);margin-left:8px}
+.perks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:20px;text-align:center;font-weight:600;font-size:14px}
+.perks div{display:flex;flex-direction:column;align-items:center;gap:8px}
+.perks svg{width:28px;height:28px}
+@media(max-width:600px){.perks{grid-template-columns:repeat(2,minmax(0,1fr))}.case-name{font-size:17px}.case-price{font-size:24px}}
+.detail{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.86);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
+.dcard{position:relative;width:100%;max-width:440px;max-height:100%;overflow-y:auto;background:#0d0b0b;border:1px solid var(--line);border-top:3px solid var(--red);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.96)}}
+.dcard .big{display:block;width:100%;max-width:300px;max-height:52vh;margin:0 auto;object-fit:contain;border-radius:10px;background:radial-gradient(60% 60% at 50% 40%,#2a0806,#0d0b0b)}
+.dcard .big.broken{display:none}
+.dcard h2{font-size:24px;text-transform:uppercase;letter-spacing:.4px}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;margin:0;font-size:15px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.note{color:var(--muted);font-size:14px;margin:0}
+.x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#000;color:var(--ink);font-size:22px;line-height:1;cursor:pointer;z-index:1}
+@media(prefers-reduced-motion:reduce){.dcard{animation:none}}
+.foot{margin-top:28px;padding-block:22px;border-top:2px solid var(--red);display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:center;color:var(--muted);font-size:15px}
+.foot a,.foot b{color:var(--ink)}
+
+.tray{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--red);color:#fff;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600}
+.tray button{background:#fff;color:#000;border:0;border-radius:10px;padding:10px 16px;min-height:44px;font:700 15px var(--display);text-transform:uppercase;letter-spacing:.6px;cursor:pointer}
+.sheet{position:fixed;inset:0;z-index:20;background:#000;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 20px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 24px) max(16px,env(safe-area-inset-left,0px))}
+.sheet .in{max-width:640px;margin:0 auto}
+.sheet h2{font-size:clamp(28px,7vw,40px);text-transform:uppercase}
+.sheet p{color:var(--muted);margin:6px 0 14px}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--red);margin-top:6px;padding-top:12px;font:700 22px var(--display)}
+.total span:last-child{color:var(--red);font-size:30px}
+.actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:10px 16px;min-height:44px;font-weight:600;cursor:pointer}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+@media(max-width:600px){.price{font-size:20px}.name{font-size:16px}.hero img{margin-top:30px}}
+@media(prefers-reduced-motion:reduce){.hero img{animation:none}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="langs" role="group" aria-label="Taal / Language">
+      <button data-lang="nl" aria-pressed="true">NL</button>
+      <button data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <img src="logo.jpg" alt="Mars TCG" width="900" height="666">
+    <h1 data-t="title">Collectie aan de stand</h1>
+    <p data-t="intro"></p>
+    <div class="stats" id="stats"></div>
+    <a class="jump" href="#acryl"><span data-t="jump"></span> <b>→</b></a>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="row1">
+      <input id="q" type="search" autocomplete="off" enterkeyhint="search">
+      <select id="sort">
+        <option value="featured" data-t="sortFeatured"></option>
+        <option value="set" data-t="sortSet"></option>
+        <option value="name">A–Z</option>
+      </select>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <ul class="list" id="list"></ul>
+  <div class="empty" id="empty" hidden></div>
+
+  <section class="acryl" id="acryl" aria-labelledby="acrylTitle">
+    <div class="acryl-head"><h2 id="acrylTitle" data-t="acrylTitle"></h2><span data-t="perPiece"></span></div>
+    <p class="acryl-intro" data-t="acrylIntro"></p>
+    <div id="cases"></div>
+    <div class="perks">
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M12 21 8 9l4-6 4 6z"/></svg><span data-t="perkClear"></span></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span data-t="perkUv"></span></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 3h4v9a3 3 0 0 0 6 0V3h4v9a7 7 0 0 1-14 0z"/><path d="M5 7h4M15 7h4"/></svg><span data-t="perkMagnet"></span></div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span data-t="perkSealed"></span></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span><b>Mars TCG</b> · <span data-t="tagline"></span></span>
+    <span>Instagram &amp; TikTok <a href="https://instagram.com/marstcgeu" target="_blank" rel="noopener">@marstcgeu</a></span>
+    <span>marstcg@gmail.com</span>
+  </footer>
+</main>
+
+<div class="tray" id="tray" hidden>
+  <span id="trayText"></span>
+  <button id="openList" data-t="showAtTable"></button>
+</div>
+
+<div class="detail" id="detail" hidden>
+  <div class="dcard" role="dialog" aria-modal="true" aria-labelledby="dName">
+    <button class="x" id="dClose" aria-label="Sluiten">×</button>
+    <img class="big" id="dImg" alt="">
+    <div><span class="tag" id="dTag"></span></div>
+    <h2 id="dName"></h2>
+    <dl class="facts" id="dFacts"></dl>
+    <p class="note" data-t="askNote"></p>
+    <div class="actions" style="margin-top:4px">
+      <button class="btn red" id="dSave"></button>
+      <button class="btn" id="dBack" data-t="close"></button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="in">
+    <h2 id="sheetTitle" data-t="myList"></h2>
+    <p data-t="showScreen"></p>
+    <ul class="list" id="sheetList"></ul>
+    <div class="total"><span id="sheetCount"></span></div>
+    <div class="actions">
+      <button class="btn red" id="closeList" data-t="back"></button>
+      <button class="btn" id="clearList" data-t="clear"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const T = {
+  nl: {
+    title: "Collectie aan de stand",
+    intro: "Alles wat we vandaag bij hebben. Zoek een kaart, bewaar wat je leuk vindt en toon je lijstje aan de stand.",
+    search: "Zoek Charizard, 151, PSA 10…", searchLabel: "Zoek in de collectie", sortLabel: "Sorteren",
+    sortFeatured: "Uitgelicht", sortSet: "Set",
+    all: "Alles", graded: "Slabs", sealed: "Sealed", card: "Kaarten",
+    sItems: "stuks", sSlabs: "slabs", sSealed: "sealed", sUpdated: "bijgewerkt",
+    tagGraded: "Graded", tagSealed: "Sealed", tagSingle: "Losse kaart",
+    ask: "Vraag aan de stand", avail: n => `${n} beschikbaar`,
+    save: n => `Bewaar in mijn lijst: ${n}`, unsave: n => `Verwijder uit mijn lijst: ${n}`,
+    noMatchH: "Niets gevonden", noMatch: q => `Niets gevonden voor “${q}”. Probeer de naam of het nummer van de kaart.`,
+    loadingH: "De stand wordt aangevuld", loading: "De collectie verschijnt hier zodra ze geladen is. Vraag ondertussen gerust aan de stand van Mars TCG.",
+    offlineH: "Geen verbinding", offline: "De collectie kon niet geladen worden. Controleer je bereik en vernieuw de pagina.",
+    tagline: "acryl cases voor sealed & slabs",
+    saved: n => `${n} bewaard`, showAtTable: "Toon aan de stand",
+    myList: "Mijn lijst", showScreen: "Toon dit scherm aan de stand van Mars TCG.",
+    count: n => `${n} ${n === 1 ? "stuk" : "stuks"}`, back: "Terug naar de collectie", clear: "Lijst wissen",
+    jump: "Acryl cases", acrylTitle: "Acryl cases", perPiece: "Prijs per stuk",
+    acrylIntro: "Bescherm je sealed en slabs met een Mars TCG case. Vraag ernaar aan de stand.",
+    details: n => `Details: ${n}`, dSet: "Set", dNum: "Nummer", dLang: "Taal", dCond: "Staat", dGrade: "Grade", dType: "Type", dQty: "Aantal",
+    close: "Sluiten", saveBtn: "Bewaar in mijn lijst", unsaveBtn: "Uit mijn lijst halen",
+    askNote: "Prijs staat op de sticker. Vraag gerust aan de stand.", typeSealed: "Sealed product",
+    soldOut: "Uitverkocht", perkClear: "Kristalhelder acryl", perkUv: "UV-bescherming", perkMagnet: "Magnetische sluiting", perkSealed: "Voor sealed collectors",
+    lang: {en:"Engels",de:"Duits",it:"Italiaans",ja:"Japans",ko:"Koreaans",zh:"Chinees",fr:"Frans",es:"Spaans","zh-hant":"Chinees",pt:"Portugees",nl:"Nederlands",pl:"Pools"},
+    locale: "nl-BE",
+  },
+  en: {
+    title: "Collection at the table",
+    intro: "Everything we brought today. Search for a card, save the ones you like, and show your list at the table.",
+    search: "Search Charizard, 151, PSA 10…", searchLabel: "Search the collection", sortLabel: "Sort",
+    sortFeatured: "Featured", sortSet: "Set",
+    all: "All", graded: "Slabs", sealed: "Sealed", card: "Cards",
+    sItems: "items", sSlabs: "slabs", sSealed: "sealed", sUpdated: "last updated",
+    tagGraded: "Graded", tagSealed: "Sealed", tagSingle: "Single",
+    ask: "Ask at the table", avail: n => `${n} available`,
+    save: n => `Save to my list: ${n}`, unsave: n => `Remove from my list: ${n}`,
+    noMatchH: "No match", noMatch: q => `Nothing matches “${q}”. Try the card name or its number.`,
+    loadingH: "Stocking the table", loading: "The collection appears here as soon as it is loaded. Ask at the Mars TCG table in the meantime.",
+    offlineH: "No connection", offline: "Couldn't load the collection. Check your signal and refresh the page.",
+    tagline: "acrylic cases for sealed & slabs",
+    saved: n => `${n} saved`, showAtTable: "Show at table",
+    myList: "My list", showScreen: "Show this screen at the Mars TCG table.",
+    count: n => `${n} item${n === 1 ? "" : "s"}`, back: "Back to the collection", clear: "Clear list",
+    jump: "Acrylic cases", acrylTitle: "Acrylic cases", perPiece: "Price each",
+    acrylIntro: "Protect your sealed product and slabs with a Mars TCG case. Ask about them at the table.",
+    details: n => `Details: ${n}`, dSet: "Set", dNum: "Number", dLang: "Language", dCond: "Condition", dGrade: "Grade", dType: "Type", dQty: "Quantity",
+    close: "Close", saveBtn: "Save to my list", unsaveBtn: "Remove from my list",
+    askNote: "The price is on the sticker. Feel free to ask at the table.", typeSealed: "Sealed product",
+    soldOut: "Sold out", perkClear: "Crystal-clear acrylic", perkUv: "UV protection", perkMagnet: "Magnetic closure", perkSealed: "Made for sealed collectors",
+    lang: {en:"English",de:"German",it:"Italian",ja:"Japanese",ko:"Korean",zh:"Chinese",fr:"French",es:"Spanish","zh-hant":"Chinese",pt:"Portuguese",nl:"Dutch",pl:"Polish"},
+    locale: "en-GB",
+  },
+};
+const GAME = {pokemon:"Pokémon",onepiece:"One Piece",lorcana:"Lorcana",riftbound:"Riftbound"};
+// Mars TCG acrylic cases: [Dutch name, English name, Dutch note, English note, price, sold out]
+const CASES = [
+  ["PSA / CGC slab", "PSA / CGC slab", "No Guard", "No Guard", 15],
+  ["Booster pack", "Booster pack", "", "", 4],
+  ["Pokémon booster box", "Pokémon booster box", "", "", 16],
+  ["Japanse booster box", "Japanese booster box", "20 packs", "20 packs", 16],
+  ["Half booster box", "Half booster box", "", "", 15],
+  ["One Piece booster box", "One Piece booster box", "OP-04 t/m OP-15", "OP-04 to OP-15", 15],
+  ["Booster bundle", "Booster bundle", "", "", 15],
+  ["Elite Trainer Box", "Elite Trainer Box", "ETB", "ETB", 18],
+  ["151 / Mega / 30th Celebration UPC", "151 / Mega / 30th Celebration UPC", "", "", 29],
+  ["Prismatic Evolutions SPC", "Prismatic Evolutions SPC", "", "", 29],
+];
+function renderCases() {
+  const L = lang === "nl" ? 0 : 1;
+  $("cases").innerHTML = CASES.map(c => `<div class="case${c[5] ? " out" : ""}">
+    <div class="case-name">${esc(c[L])}${c[5] ? `<span class="sold">${esc(t.soldOut)}</span>` : ""}${c[2 + L] ? `<span class="case-sub">${esc(c[2 + L])}</span>` : ""}</div>
+    <div class="case-price">€${esc(c[4])}</div>
+  </div>`).join("");
+}
+const FILTERS = ["all", "graded", "sealed", "card"];
+const STAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.7-5.1 4.6 1.5 6.7L12 17.3l-6.1 3.4 1.5-6.7L2.3 9.4l6.8-.7z"/></svg>';
+
+let lang = "en";
+try { lang = localStorage.getItem("mars-lang") || ""; } catch (e) {}
+if (!T[lang]) lang = /^nl\b/i.test(navigator.language || "") ? "nl" : "en";
+let t = T[lang];
+
+let items = [], data = {}, filter = "all", state = "loading", saved = new Set();
+try { saved = new Set(JSON.parse(localStorage.getItem("mars-saved") || "[]")); } catch (e) {}
+const persist = () => { try { localStorage.setItem("mars-saved", JSON.stringify([...saved])); } catch (e) {} };
+
+const eur = n => n == null ? "" : new Intl.NumberFormat("nl-BE", {style: "currency", currency: "EUR", maximumFractionDigits: n >= 100 ? 0 : 2}).format(n);
+const kind = i => i.bucket === "graded" ? "graded" : i.bucket === "sealed" ? "sealed" : "card";
+const tagOf = i => i.bucket === "graded" ? (i.grade || t.tagGraded) : i.bucket === "sealed" ? t.tagSealed : (i.condition || t.tagSingle);
+const metaOf = i => [i.set, i.number && "#" + i.number, t.lang[i.language], i.game && i.game !== "pokemon" && GAME[i.game]].filter(Boolean).join(" · ");
+
+function row(i, inSheet) {
+  const on = saved.has(i.id);
+  return `<li class="item ${kind(i)}">
+    <button class="open" data-open="${esc(i.id)}" aria-label="${esc(t.details(i.name))}">
+      ${i.img ? `<img class="thumb" src="${esc(i.img)}" alt="" loading="lazy" decoding="async">` : ""}
+      <span class="txt"><span class="name"><span class="tag">${esc(tagOf(i))}</span>${esc(i.name)}</span><span class="meta">${esc(metaOf(i))}</span></span>
+    </button>
+    ${i.qty > 1 ? `<div class="price"><small>${esc(t.avail(i.qty))}</small></div>` : ""}
+    ${inSheet ? "" : `<button class="save" data-id="${esc(i.id)}" aria-pressed="${on}" aria-label="${esc(on ? t.unsave(i.name) : t.save(i.name))}">${STAR}</button>`}
+  </li>`;
+}
+
+function applyStatic() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t[el.dataset.t]; });
+  $("q").placeholder = t.search; $("q").setAttribute("aria-label", t.searchLabel);
+  $("sort").setAttribute("aria-label", t.sortLabel);
+  document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+  renderCases();
+}
+
+function setStats() {
+  if (!items.length) { $("stats").innerHTML = ""; return; }
+  const total = items.reduce((a, i) => a + (i.qty || 1), 0);
+  const when = data.updated_at ? new Date(data.updated_at).toLocaleString(t.locale, {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "";
+  $("stats").innerHTML = `<span><b>${esc(total)}</b>${esc(t.sItems)}</span><span><b>${esc(items.filter(i => i.bucket === "graded").length)}</b>${esc(t.sSlabs)}</span>${items.some(i => i.bucket === "sealed") ? `<span><b>${esc(items.filter(i => i.bucket === "sealed").length)}</b>${esc(t.sSealed)}</span>` : ""}${when ? `<span><b>${esc(when)}</b>${esc(t.sUpdated)}</span>` : ""}`;
+}
+
+function render() {
+  const tokens = $("q").value.toLowerCase().split(/\s+/).filter(Boolean);
+  const by = {
+    "featured": (a, b) => a._i - b._i,
+    "name": (a, b) => a.name.localeCompare(b.name),
+    "set": (a, b) => (a.set || "").localeCompare(b.set || "") || String(a.number || "").localeCompare(String(b.number || ""), undefined, {numeric: true}),
+  }[$("sort").value];
+  const shown = items.filter(i => (filter === "all" || kind(i) === filter) &&
+    tokens.every(w => [i.name, i.set, i.number, i.grade, i.condition, T.nl.lang[i.language], T.en.lang[i.language], GAME[i.game], tagOf(i)].join(" ").toLowerCase().includes(w)))
+    .sort(by);
+  $("list").innerHTML = shown.map(i => row(i)).join("");
+
+  const em = $("empty");
+  const msg = state === "offline" ? [t.offlineH, t.offline] : !items.length ? [t.loadingH, t.loading] : !shown.length ? [t.noMatchH, t.noMatch($("q").value)] : null;
+  em.hidden = !msg || state === "loading";
+  if (msg) em.innerHTML = `<h2>${esc(msg[0])}</h2><p>${esc(msg[1])}</p>`;
+
+  const counts = {all: items.length, graded: 0, sealed: 0, card: 0};
+  items.forEach(i => counts[kind(i)]++);
+  $("chips").innerHTML = FILTERS.filter(k => k === "all" || counts[k] > 0).map(k => `<button data-f="${k}" aria-pressed="${filter === k}">${esc(t[k])}<span>${counts[k]}</span></button>`).join("");
+  setStats(); renderTray();
+}
+
+function renderTray() {
+  const list = items.filter(i => saved.has(i.id));
+  $("tray").hidden = !list.length;
+  $("trayText").textContent = t.saved(list.length);
+  $("sheetList").innerHTML = list.map(i => row(i, true)).join("");
+  $("sheetCount").textContent = t.count(list.length);
+  if (!list.length) $("sheet").hidden = true;
+}
+
+document.querySelector(".langs").addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]"); if (!b) return;
+  lang = b.dataset.lang; t = T[lang];
+  try { localStorage.setItem("mars-lang", lang); } catch (err) {}
+  applyStatic(); render(); renderDetail();
+});
+$("q").addEventListener("input", render);
+$("sort").addEventListener("change", render);
+$("chips").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) { filter = b.dataset.f; render(); } });
+let current = null, lastFocus = null;
+function renderDetail() {
+  const i = current; if (!i) return;
+  const big = $("dImg");
+  big.classList.remove("broken");
+  big.onerror = () => { if (i.img && big.src !== new URL(i.img, location.href).href) big.src = i.img; else big.classList.add("broken"); };
+  big.src = i.img_lg || i.img || ""; big.alt = i.name;
+  if (!i.img) big.classList.add("broken");
+  $("dTag").textContent = tagOf(i);
+  $("dName").textContent = i.name;
+  const rows = [
+    [t.dSet, i.set], [t.dNum, i.number && "#" + i.number], [t.dLang, t.lang[i.language]],
+    i.bucket === "graded" ? [t.dGrade, i.grade] : i.bucket === "sealed" ? [t.dType, t.typeSealed] : [t.dCond, i.condition],
+    [t.dQty, i.qty],
+  ].filter(r => r[1] != null && r[1] !== "");
+  $("dFacts").innerHTML = rows.map(r => `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join("");
+  const on = saved.has(i.id);
+  $("dSave").textContent = on ? t.unsaveBtn : t.saveBtn;
+  $("dSave").className = on ? "btn" : "btn red";
+  $("dClose").setAttribute("aria-label", t.close);
+}
+function openDetail(id) {
+  current = items.find(i => i.id === id); if (!current) return;
+  lastFocus = document.activeElement;
+  renderDetail(); $("detail").hidden = false; $("dClose").focus();
+}
+function closeDetail() {
+  $("detail").hidden = true; current = null;
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+$("dClose").onclick = closeDetail;
+$("dBack").onclick = closeDetail;
+$("detail").addEventListener("click", e => { if (e.target === $("detail")) closeDetail(); });
+$("dSave").onclick = () => {
+  const id = current.id; saved.has(id) ? saved.delete(id) : saved.add(id); persist();
+  renderDetail(); render();
+};
+document.addEventListener("error", e => { if (e.target.classList && e.target.classList.contains("thumb")) e.target.classList.add("broken"); }, true);
+
+$("list").addEventListener("click", e => {
+  const o = e.target.closest("[data-open]"); if (o) { openDetail(o.dataset.open); return; }
+  const b = e.target.closest(".save"); if (!b) return;
+  const id = b.dataset.id; saved.has(id) ? saved.delete(id) : saved.add(id); persist();
+  const it = items.find(i => i.id === id), on = saved.has(id);
+  b.setAttribute("aria-pressed", on); b.setAttribute("aria-label", on ? t.unsave(it.name) : t.save(it.name));
+  renderTray();
+});
+$("openList").onclick = () => { $("sheet").hidden = false; $("closeList").focus(); };
+$("closeList").onclick = () => { $("sheet").hidden = true; };
+$("clearList").onclick = () => { saved.clear(); persist(); render(); };
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (!$("detail").hidden) closeDetail(); else $("sheet").hidden = true;
+});
+
+applyStatic(); render();
+fetch("data.json", {cache: "no-store"})
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(d => {
+    data = d || {};
+    items = (data.items || []).filter(i => i && i.id && i.name).map((i, n) => ({...i, _i: n}));
+    const ids = new Set(items.map(i => i.id));
+    saved = new Set([...saved].filter(id => ids.has(id)));
+    state = "ready"; render();
+  })
+  .catch(() => { state = "offline"; render(); });
+}
+</script>
+</body>
+</html>
