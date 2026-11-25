@@ -100,6 +100,20 @@ select{background:var(--panel);border:1px solid var(--line);border-radius:10px;p
 @media(prefers-reduced-motion:reduce){.dcard{animation:none}}
 .foot{margin-top:28px;padding-block:22px;border-top:2px solid var(--red);display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:center;color:var(--muted);font-size:15px}
 .foot a,.foot b{color:var(--ink)}
+.sec{margin-top:36px;padding-top:8px}
+.sec-head{border-bottom:2px solid var(--red);padding-bottom:10px}
+.sec-head h2{font-size:clamp(26px,6vw,34px);text-transform:uppercase;letter-spacing:2px}
+.show{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.show-date{font:700 15px/1.15 var(--display);color:var(--red);text-transform:uppercase;letter-spacing:.5px}
+.show-name{font:700 18px/1.2 var(--display);text-transform:uppercase;letter-spacing:.3px;overflow-wrap:anywhere}
+.show .meta b{color:var(--ink);font-weight:600}
+.pay{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 4px;color:var(--muted);font-size:15px}
+.pill{border:1px solid var(--red);color:var(--ink);border-radius:999px;padding:5px 14px;font:700 14px var(--display);text-transform:uppercase;letter-spacing:.8px}
+a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.send{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.send h3{font:700 20px var(--display);text-transform:uppercase;letter-spacing:.5px;margin:0}
+.send .actions{margin-top:12px}
+.send .note{margin-top:10px;min-height:1.5em}
 
 .tray{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--red);color:#fff;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600}
 .tray button{background:#fff;color:#000;border:0;border-radius:10px;padding:10px 16px;min-height:44px;font:700 15px var(--display);text-transform:uppercase;letter-spacing:.6px;cursor:pointer}
@@ -161,6 +175,22 @@ select{background:var(--panel);border:1px solid var(--line);border-radius:10px;p
     </div>
   </section>
 
+  <section class="sec" id="shows" hidden aria-labelledby="showsTitle">
+    <div class="sec-head"><h2 id="showsTitle" data-t="showsTitle"></h2></div>
+    <div id="showList"></div>
+  </section>
+
+  <section class="sec" id="contact" aria-labelledby="contactTitle">
+    <div class="sec-head"><h2 id="contactTitle" data-t="contactTitle"></h2></div>
+    <p class="acryl-intro" data-t="contactIntro"></p>
+    <div class="pay"><span data-t="payWith"></span><span id="payList" style="display:contents"></span></div>
+    <div class="actions">
+      <a class="btn red" href="https://ig.me/m/marstcgeu" target="_blank" rel="noopener" data-t="dmIg"></a>
+      <a class="btn" href="https://www.tiktok.com/@marstcgeu" target="_blank" rel="noopener">TikTok</a>
+      <a class="btn" href="mailto:marstcg@gmail.com">marstcg@gmail.com</a>
+    </div>
+  </section>
+
   <footer class="foot">
     <span><b>Mars TCG</b> · <span data-t="tagline"></span></span>
     <span>Instagram &amp; TikTok <a href="https://instagram.com/marstcgeu" target="_blank" rel="noopener">@marstcgeu</a></span>
@@ -194,6 +224,15 @@ select{background:var(--panel);border:1px solid var(--line);border-radius:10px;p
     <p data-t="showScreen"></p>
     <ul class="list" id="sheetList"></ul>
     <div class="total"><span id="sheetCount"></span></div>
+    <div class="send">
+      <h3 data-t="sendTitle"></h3>
+      <p data-t="sendIntro"></p>
+      <div class="actions">
+        <a class="btn red" id="sendIg" href="https://ig.me/m/marstcgeu" target="_blank" rel="noopener" data-t="sendIg"></a>
+        <a class="btn" id="sendMail" href="mailto:marstcg@gmail.com" data-t="sendMail"></a>
+      </div>
+      <p class="note" id="sendStatus" role="status"></p>
+    </div>
     <div class="actions">
       <button class="btn red" id="closeList" data-t="back"></button>
       <button class="btn" id="clearList" data-t="clear"></button>
@@ -230,6 +269,14 @@ const T = {
     close: "Sluiten", saveBtn: "Bewaar in mijn lijst", unsaveBtn: "Uit mijn lijst halen",
     askNote: "Prijs staat op de sticker. Vraag gerust aan de stand.", typeSealed: "Sealed product",
     soldOut: "Uitverkocht", perkClear: "Kristalhelder acryl", perkUv: "UV-bescherming", perkMagnet: "Magnetische sluiting", perkSealed: "Voor sealed collectors",
+    showsTitle: "Volgende beurzen", table: "tafel",
+    contactTitle: "Contact & betalen", contactIntro: "Kopen, verkopen of ruilen? Kom langs aan de stand of stuur ons een bericht.",
+    payWith: "Betalen met", dmIg: "Stuur een DM op Instagram",
+    sendTitle: "Stuur je lijst naar Mars TCG", sendIntro: "Reserveer voor de volgende beurs of vraag ernaar na de beurs.",
+    sendIg: "Kopieer & open Instagram", sendMail: "Stuur per e-mail",
+    copied: "Lijst gekopieerd. Plak hem in het Instagram-gesprek.", copyFail: "Kopiëren lukte niet. Maak een screenshot van dit scherm en stuur die door.",
+    msgHi: "Hallo Mars TCG! Ik heb interesse in:", mailSubject: "Mijn lijst",
+    pay: ["Contant", "Payconiq"],
     lang: {en:"Engels",de:"Duits",it:"Italiaans",ja:"Japans",ko:"Koreaans",zh:"Chinees",fr:"Frans",es:"Spaans","zh-hant":"Chinees",pt:"Portugees",nl:"Nederlands",pl:"Pools"},
     locale: "nl-BE",
   },
@@ -256,6 +303,14 @@ const T = {
     close: "Close", saveBtn: "Save to my list", unsaveBtn: "Remove from my list",
     askNote: "The price is on the sticker. Feel free to ask at the table.", typeSealed: "Sealed product",
     soldOut: "Sold out", perkClear: "Crystal-clear acrylic", perkUv: "UV protection", perkMagnet: "Magnetic closure", perkSealed: "Made for sealed collectors",
+    showsTitle: "Next shows", table: "table",
+    contactTitle: "Contact & payment", contactIntro: "Buying, selling or trading? Come by the table or send us a message.",
+    payWith: "Pay with", dmIg: "Send a DM on Instagram",
+    sendTitle: "Send your list to Mars TCG", sendIntro: "Reserve for the next show, or ask about it after the show.",
+    sendIg: "Copy & open Instagram", sendMail: "Send by email",
+    copied: "List copied. Paste it into the Instagram chat.", copyFail: "Couldn't copy. Take a screenshot of this screen and send that instead.",
+    msgHi: "Hi Mars TCG! I'm interested in:", mailSubject: "My list",
+    pay: ["Cash", "Payconiq"],
     lang: {en:"English",de:"German",it:"Italian",ja:"Japanese",ko:"Korean",zh:"Chinese",fr:"French",es:"Spanish","zh-hant":"Chinese",pt:"Portuguese",nl:"Dutch",pl:"Polish"},
     locale: "en-GB",
   },
@@ -279,6 +334,21 @@ function renderCases() {
   $("cases").innerHTML = CASES.map(c => `<div class="case${c[5] ? " out" : ""}">
     <div class="case-name">${esc(c[L])}${c[5] ? `<span class="sold">${esc(t.soldOut)}</span>` : ""}${c[2 + L] ? `<span class="case-sub">${esc(c[2 + L])}</span>` : ""}</div>
     <div class="case-price">€${esc(c[4])}</div>
+  </div>`).join("");
+}
+// Upcoming shows: [start "YYYY-MM-DD", end "YYYY-MM-DD" or "", name, city, table number or ""].
+// Shows disappear by themselves once their end date has passed; the section is hidden while the list is empty.
+// Example: ["2026-12-13", "", "Brussels Card Show", "Brussel", "12"],
+const SHOWS = [
+];
+function renderShows() {
+  const today = new Date().toISOString().slice(0, 10);
+  const up = SHOWS.filter(s => (s[1] || s[0]) >= today).sort((a, b) => a[0].localeCompare(b[0]));
+  $("shows").hidden = !up.length;
+  const fmt = d => new Date(d + "T12:00:00").toLocaleDateString(t.locale, {weekday: "short", day: "numeric", month: "short"});
+  $("showList").innerHTML = up.map(s => `<div class="show">
+    <div class="show-date">${s[1] && s[1] !== s[0] ? `${esc(new Date(s[0] + "T12:00:00").toLocaleDateString(t.locale, {weekday: "short", day: "numeric"}))} –<br>${esc(fmt(s[1]))}` : esc(fmt(s[0]))}</div>
+    <div><div class="show-name">${esc(s[2])}</div><span class="meta">${esc(s[3])}${s[4] ? ` · <b>${esc(t.table)} ${esc(s[4])}</b>` : ""}</span></div>
   </div>`).join("");
 }
 const FILTERS = ["all", "graded", "sealed", "card"];
@@ -316,7 +386,9 @@ function applyStatic() {
   $("q").placeholder = t.search; $("q").setAttribute("aria-label", t.searchLabel);
   $("sort").setAttribute("aria-label", t.sortLabel);
   document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
-  renderCases();
+  renderCases(); renderShows();
+  $("payList").innerHTML = t.pay.map(p => `<span class="pill">${esc(p)}</span>`).join("");
+  $("sendStatus").textContent = "";
 }
 
 function setStats() {
@@ -355,8 +427,16 @@ function renderTray() {
   $("trayText").textContent = t.saved(list.length);
   $("sheetList").innerHTML = list.map(i => row(i, true)).join("");
   $("sheetCount").textContent = t.count(list.length);
+  $("sendMail").href = "mailto:marstcg@gmail.com?subject=" + encodeURIComponent("Mars TCG – " + t.mailSubject) + "&body=" + encodeURIComponent(listText(list));
   if (!list.length) $("sheet").hidden = true;
 }
+const listText = list => t.msgHi + "\n" + list.map(i => "- " + [i.name, metaOf(i), tagOf(i)].filter(Boolean).join(" | ")).join("\n");
+$("sendIg").addEventListener("click", () => {
+  const text = listText(items.filter(i => saved.has(i.id)));
+  const ok = () => { $("sendStatus").textContent = t.copied; };
+  const fail = () => { $("sendStatus").textContent = t.copyFail; };
+  try { navigator.clipboard.writeText(text).then(ok, fail); } catch (e) { fail(); }
+});
 
 document.querySelector(".langs").addEventListener("click", e => {
   const b = e.target.closest("[data-lang]"); if (!b) return;
